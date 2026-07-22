@@ -1,5 +1,7 @@
-import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -8,15 +10,35 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
       transform: true,
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3001);
+  const config = new DocumentBuilder()
+    .setTitle('FlavorFusion API')
+    .setDescription('Restaurant Ordering Backend API')
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'JWT-auth',
+    )
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+
+  SwaggerModule.setup('api', app, document);
+
+  await app.listen(3001);
 
   console.log(
-    `🚀 FlavorFusion Backend running on http://localhost:${process.env.PORT ?? 3001}`,
+    '🚀 FlavorFusion Backend running on http://localhost:3001',
+  );
+  console.log(
+    '📖 Swagger Docs: http://localhost:3001/api',
   );
 }
 

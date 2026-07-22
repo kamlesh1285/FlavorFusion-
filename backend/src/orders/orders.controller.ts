@@ -1,7 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
+
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+import { UseGuards, Request } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CheckoutDto } from './dto/checkout.dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -19,16 +30,25 @@ export class OrdersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(+id);
+    return this.ordersService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.ordersService.update(+id, updateOrderDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateOrderDto: UpdateOrderDto,
+  ) {
+    return this.ordersService.update(id, updateOrderDto);
   }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.ordersService.remove(+id);
-  }
+  @Post('checkout')
+@UseGuards(JwtAuthGuard)
+checkout(
+  @Request() req,
+  @Body() dto: CheckoutDto,
+) {
+  return this.ordersService.checkout(
+    req.user.userId,
+    dto,
+  );
+}
 }
