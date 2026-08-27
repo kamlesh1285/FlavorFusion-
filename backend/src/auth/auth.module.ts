@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -19,11 +20,15 @@ import { RolesGuard } from './guards/roles.guard';
 
     PassportModule,
 
-    JwtModule.register({
-      secret: 'flavorfusion-secret-key',
-      signOptions: {
-        expiresIn: '7d',
-      },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN', '7d') as any,
+        },
+      }),
     }),
   ],
   controllers: [AuthController],

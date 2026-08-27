@@ -11,6 +11,7 @@ import {
 
 import { User } from '../../users/entities/user.entity';
 import { OrderItem } from './order-item.entity';
+import { PaymentMethod, PaymentStatus } from '../../payments/payment.enums';
 
 export enum OrderStatus {
   PENDING = 'PENDING',
@@ -55,9 +56,29 @@ export class Order {
   deliveryAddress!: string;
 
   @Column({
+    type: 'enum',
+    enum: PaymentMethod,
     nullable: true,
   })
-  paymentMethod!: string;
+  paymentMethod!: PaymentMethod;
+
+  @Column({
+    type: 'enum',
+    enum: PaymentStatus,
+    default: PaymentStatus.PENDING,
+  })
+  paymentStatus!: PaymentStatus;
+
+  @Column({
+    nullable: true,
+  })
+  transactionRef!: string;
+
+  @Column({
+    type: 'text',
+    nullable: true,
+  })
+  upiLink!: string | null;
 
   @OneToMany(
     () => OrderItem,

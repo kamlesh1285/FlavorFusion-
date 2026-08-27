@@ -19,7 +19,6 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/entities/user.entity';
 
 @Controller('foods')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class FoodsController {
   constructor(private readonly foodsService: FoodsService) {}
 
@@ -36,6 +35,7 @@ export class FoodsController {
   }
 
   // Admin Only
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Post()
   create(@Body() dto: CreateFoodDto) {
@@ -43,6 +43,7 @@ export class FoodsController {
   }
 
   // Admin Only
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Patch(':id')
   update(
@@ -53,6 +54,7 @@ export class FoodsController {
   }
 
   // Admin Only
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {

@@ -9,6 +9,7 @@ import { Food } from '../foods/entities/food.entity';
 import { Inventory } from '../inventory/entities/inventory.entity';
 import { Cart } from '../cart/entities/cart.entity';
 import { CartItem } from '../cart/entities/cart-item.entity';
+import { PaymentsModule } from '../payments/payments.module';
 
 
 @Module({
@@ -22,6 +23,7 @@ import { CartItem } from '../cart/entities/cart-item.entity';
       Cart,
       CartItem,
     ]),
+    PaymentsModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],
