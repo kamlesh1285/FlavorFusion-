@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -7,6 +8,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
@@ -68,5 +71,63 @@ export class UsersService {
 
     const { password, ...safeUser } = user;
     return safeUser;
+  }
+
+  async updateProfile(id: string, dto: UpdateProfileDto) {
+    const user = await this.usersRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (dto.email || dto.phone) {
+      const conflict = await this.usersRepository
+        .createQueryBuilder('user')
+        .where('user.id != :id', { id })
+        .andWhere(
+          '(user.email = :email OR user.phone = :phone)',
+          {
+            email: dto.email ?? '__no_match__',
+            phone: dto.phone ?? '__no_match__',
+          },
+        )
+        .getOne();
+
+      if (conflict) {
+        throw new ConflictException('Email or phone number already in use');
+      }
+    }
+
+    Object.assign(user, dto);
+    const saved = await this.usersRepository.save(user);
+
+    const { password, ...safeUser } = saved;
+    return safeUser;
+  }
+
+  async changePassword(id: string, dto: ChangePasswordDto) {
+    const user = await this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.id = :id', { id })
+      .getOne();
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isCurrentValid = await bcrypt.compare(
+      dto.currentPassword,
+      user.password,
+    );
+
+    if (!isCurrentValid) {
+      throw new BadRequestException('Current password is incorrect');
+    }
+
+    user.password = await bcrypt.hash(dto.newPassword, 12);
+    await this.usersRepository.save(user);
+
+    return { message: 'Password updated' };
   }
 }

@@ -1,64 +1,155 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Navbar } from "@/components/Navbar";
+import { FoodCard } from "@/components/FoodCard";
+import { VegIndicator } from "@/components/VegIndicator";
+import { useAuth } from "@/lib/auth-context";
+import { useCart } from "@/lib/cart-context";
+import { ApiError, getCategories, getFoods, type Category, type Food } from "@/lib/api";
 
 export default function Home() {
+  const router = useRouter();
+  const { token } = useAuth();
+  const { addToCart } = useCart();
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [foods, setFoods] = useState<Food[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null,
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setIsLoading(true);
+      setLoadError(null);
+      try {
+        const [categoriesRes, foodsRes] = await Promise.all([
+          getCategories(),
+          getFoods(),
+        ]);
+        if (cancelled) return;
+        setCategories(categoriesRes);
+        setFoods(foodsRes);
+      } catch (err) {
+        if (cancelled) return;
+        setLoadError(
+          err instanceof ApiError
+            ? err.message
+            : "Couldn't reach the kitchen. Is the backend running?",
+        );
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const filteredFoods = useMemo(() => {
+    if (!selectedCategoryId) return foods;
+    return foods.filter((f) => f.categoryId === selectedCategoryId);
+  }, [foods, selectedCategoryId]);
+
+  async function handleAdd(foodId: string) {
+    if (!token) {
+      router.push("/login");
+      throw new Error("Sign in required");
+    }
+    await addToCart(foodId, 1);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+
+      <section className="bg-ink border-b border-paper/10">
+        <div className="max-w-5xl mx-auto px-6 pt-16 pb-12">
+          <p className="field-label text-paper/50 mb-3">
+            Today&apos;s spread · made fresh to order
           </p>
+          <h1 className="font-display text-4xl sm:text-5xl font-semibold italic leading-[1.05] max-w-xl text-paper">
+            Pick a tin,
+            <br />
+            we&apos;ll do the rest.
+          </h1>
+          <div className="flex items-center gap-6 mt-7">
+            <div className="flex items-center gap-2">
+              <VegIndicator isVeg />
+              <span className="font-mono text-xs text-paper/55">
+                Vegetarian
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <VegIndicator isVeg={false} />
+              <span className="font-mono text-xs text-paper/55">
+                Non-vegetarian
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+      </section>
+
+      <main className="flex-1 max-w-5xl mx-auto px-6 py-10 w-full">
+        {loadError && (
+          <div className="ticket-card p-5 mb-8">
+            <p className="error-text">{loadError}</p>
+          </div>
+        )}
+
+        {!loadError && (
+          <>
+            <div className="flex gap-2 flex-wrap mb-8">
+              <button
+                onClick={() => setSelectedCategoryId(null)}
+                className={`font-mono text-xs px-4 py-2 rounded-full border transition-colors ${
+                  selectedCategoryId === null
+                    ? "bg-turmeric text-ink border-turmeric font-semibold"
+                    : "border-ink/25 text-ink/70 hover:border-ink/50 bg-paper/40"
+                }`}
+              >
+                All
+              </button>
+              {categories.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedCategoryId(c.id)}
+                  className={`font-mono text-xs px-4 py-2 rounded-full border transition-colors ${
+                    selectedCategoryId === c.id
+                      ? "bg-turmeric text-ink border-turmeric font-semibold"
+                      : "border-ink/25 text-ink/70 hover:border-ink/50 bg-paper/40"
+                  }`}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+
+            {isLoading ? (
+              <p className="font-mono text-sm text-ink/60">
+                Loading the menu…
+              </p>
+            ) : filteredFoods.length === 0 ? (
+              <p className="font-mono text-sm text-ink/60">
+                Nothing in this category yet.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {filteredFoods.map((food) => (
+                  <FoodCard key={food.id} food={food} onAdd={handleAdd} />
+                ))}
+              </div>
+            )}
+          </>
+        )}
       </main>
     </div>
   );

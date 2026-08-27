@@ -7,14 +7,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CreateOrderDto } from './dto/create-order.dto';
-import { Order } from './entities/order.entity';
+import { Order, OrderStatus } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
+import { PaymentStatus } from '../payments/payment.enums';
 import { User } from '../users/entities/user.entity';
 import { Food } from '../foods/entities/food.entity';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { CheckoutDto } from './dto/checkout.dto';
 import { Cart } from '../cart/entities/cart.entity';
 import { CartItem } from '../cart/entities/cart-item.entity';
+import { PaymentsService } from '../payments/payments.service';
 
 @Injectable()
 export class OrdersService {
@@ -36,6 +38,8 @@ export class OrdersService {
 
     @InjectRepository(CartItem)
     private readonly cartItemRepository: Repository<CartItem>,
+
+    private readonly paymentsService: PaymentsService,
   ) {}
 
   async create(createOrderDto: CreateOrderDto) {
@@ -114,6 +118,20 @@ export class OrdersService {
     });
   }
 
+  findByUser(userId: string) {
+    return this.ordersRepository.find({
+      where: { userId },
+      relations: {
+        items: {
+          food: true,
+        },
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  }
+
     async findOne(id: string) {
     const order = await this.ordersRepository.findOne({
       where: { id },
@@ -154,6 +172,18 @@ export class OrdersService {
 
   if (updateOrderDto.status) {
     order.status = updateOrderDto.status;
+
+    // Cash-on-delivery orders are marked PAID once the order is delivered.
+    if (
+      updateOrderDto.status === OrderStatus.DELIVERED &&
+      order.paymentStatus === PaymentStatus.PENDING
+    ) {
+      order.paymentStatus = PaymentStatus.PAID;
+    }
+  }
+
+  if (updateOrderDto.paymentStatus) {
+    order.paymentStatus = updateOrderDto.paymentStatus;
   }
 
   return this.ordersRepository.save(order);
@@ -220,7 +250,18 @@ async checkout(userId: string, dto: CheckoutDto) {
     paymentMethod: dto.paymentMethod,
   });
 
-  const savedOrder = await this.ordersRepository.save(order);
+  let savedOrder = await this.ordersRepository.save(order);
+
+  const chargeResult = await this.paymentsService.charge({
+    orderId: savedOrder.id,
+    amount: totalAmount,
+    method: dto.paymentMethod,
+  });
+
+  savedOrder.paymentStatus = chargeResult.status;
+  savedOrder.transactionRef = chargeResult.transactionRef;
+  savedOrder.upiLink = chargeResult.upiLink ?? null;
+  savedOrder = await this.ordersRepository.save(savedOrder);
 
   await this.cartItemRepository.delete({
     cart: {

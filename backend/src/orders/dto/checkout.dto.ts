@@ -1,9 +1,10 @@
-import { IsString } from 'class-validator';
+import { IsEnum, IsString } from 'class-validator';
+import { PaymentMethod } from '../../payments/payment.enums';
 
 export class CheckoutDto {
   @IsString()
   deliveryAddress!: string;
 
-  @IsString()
-  paymentMethod!: string;
+  @IsEnum(PaymentMethod)
+  paymentMethod!: PaymentMethod;
 }
