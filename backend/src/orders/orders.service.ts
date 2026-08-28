@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { Order, OrderStatus } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
-import { PaymentStatus } from '../payments/payment.enums';
+import { PaymentMethod, PaymentStatus } from '../payments/payment.enums';
 import { User } from '../users/entities/user.entity';
 import { Food } from '../foods/entities/food.entity';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -173,10 +173,14 @@ export class OrdersService {
   if (updateOrderDto.status) {
     order.status = updateOrderDto.status;
 
-    // Cash-on-delivery orders are marked PAID once the order is delivered.
+    // Cash-on-delivery orders are marked PAID once the order is
+    // delivered - payment literally happens at the door. Other
+    // pending payment methods (e.g. UPI awaiting manual confirmation)
+    // must NOT be auto-marked paid just because delivery happened.
     if (
       updateOrderDto.status === OrderStatus.DELIVERED &&
-      order.paymentStatus === PaymentStatus.PENDING
+      order.paymentStatus === PaymentStatus.PENDING &&
+      order.paymentMethod === PaymentMethod.CASH_ON_DELIVERY
     ) {
       order.paymentStatus = PaymentStatus.PAID;
     }

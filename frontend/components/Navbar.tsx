@@ -64,6 +64,24 @@ export function Navbar() {
             </Link>
           )}
 
+          {user?.role === "KITCHEN" && (
+            <Link
+              href="/kitchen"
+              className="font-mono text-xs text-turmeric hover:text-paper transition-colors hidden sm:inline"
+            >
+              Kitchen
+            </Link>
+          )}
+
+          {user?.role === "DELIVERY" && (
+            <Link
+              href="/delivery"
+              className="font-mono text-xs text-turmeric hover:text-paper transition-colors hidden sm:inline"
+            >
+              Delivery
+            </Link>
+          )}
+
           {user?.role === "ADMIN" && (
             <Link
               href="/admin"
