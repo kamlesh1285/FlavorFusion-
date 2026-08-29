@@ -189,66 +189,83 @@ export class OrdersService {
   return this.ordersRepository.save(order);
 }
 
-async checkout(userId: string, dto: CheckoutDto) {
-  const cart = await this.cartRepository.findOne({
-    where: {
-      user: {
-        id: userId,
-      },
-    },
-    relations: {
-      user: true,
-      items: {
-        food: true,
-      },
-    },
-  });
+  private async generateDateWiseToken(): Promise<string> {
+    const today = new Date();
+    const dateStr = today.toISOString().slice(0, 10).replace(/-/g, ''); // e.g. 20260829
+    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    
+    const countToday = await this.ordersRepository
+      .createQueryBuilder('order')
+      .where('order.createdAt >= :startOfDay', { startOfDay })
+      .getCount();
 
-  if (!cart || cart.items.length === 0) {
-    throw new BadRequestException('Cart is empty');
+    const seq = (countToday + 1).toString().padStart(3, '0');
+    return `TK-${dateStr}-${seq}`;
   }
 
-  let totalAmount = 0;
-  const orderItems: OrderItem[] = [];
-
-  for (const item of cart.items) {
-    const food = await this.foodsRepository.findOne({
-      where: { id: item.food.id },
+  async checkout(userId: string, dto: CheckoutDto) {
+    const cart = await this.cartRepository.findOne({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
+      relations: {
+        user: true,
+        items: {
+          food: true,
+        },
+      },
     });
 
-    if (!food) {
-      throw new NotFoundException('Food not found');
+    if (!cart || cart.items.length === 0) {
+      throw new BadRequestException('Cart is empty');
     }
 
-    if (food.stockQuantity < item.quantity) {
-      throw new BadRequestException(
-        `${food.name} is out of stock`,
+    let totalAmount = 0;
+    const orderItems: OrderItem[] = [];
+
+    for (const item of cart.items) {
+      const food = await this.foodsRepository.findOne({
+        where: { id: item.food.id },
+      });
+
+      if (!food) {
+        throw new NotFoundException('Food not found');
+      }
+
+      if (food.stockQuantity < item.quantity) {
+        throw new BadRequestException(
+          `${food.name} is out of stock`,
+        );
+      }
+
+      food.stockQuantity -= item.quantity;
+      await this.foodsRepository.save(food);
+
+      totalAmount += Number(food.price) * item.quantity;
+
+      orderItems.push(
+        this.orderItemsRepository.create({
+          food,
+          foodId: food.id,
+          quantity: item.quantity,
+          price: Number(food.price),
+        }),
       );
     }
 
-    food.stockQuantity -= item.quantity;
-    await this.foodsRepository.save(food);
+    const tokenNumber = await this.generateDateWiseToken();
 
-    totalAmount += Number(food.price) * item.quantity;
-
-    orderItems.push(
-      this.orderItemsRepository.create({
-        food,
-        foodId: food.id,
-        quantity: item.quantity,
-        price: Number(food.price),
-      }),
-    );
-  }
-
-  const order = this.ordersRepository.create({
-    user: cart.user,
-    userId: cart.user.id,
-    items: orderItems,
-    totalAmount,
-    deliveryAddress: dto.deliveryAddress,
-    paymentMethod: dto.paymentMethod,
-  });
+    const order = this.ordersRepository.create({
+      user: cart.user,
+      userId: cart.user.id,
+      items: orderItems,
+      totalAmount,
+      deliveryAddress: dto.deliveryAddress,
+      paymentMethod: dto.paymentMethod,
+      tokenNumber,
+    });
 
   let savedOrder = await this.ordersRepository.save(order);
 

@@ -75,6 +75,11 @@ export class Order {
   transactionRef!: string;
 
   @Column({
+    nullable: true,
+  })
+  tokenNumber!: string;
+
+  @Column({
     type: 'text',
     nullable: true,
   })

@@ -202,6 +202,7 @@ export type PaymentMethod = "CASH_ON_DELIVERY" | "CARD" | "UPI";
 
 export interface OrderDto {
   id: string;
+  tokenNumber?: string;
   status: string;
   paymentMethod: PaymentMethod;
   paymentStatus: string;

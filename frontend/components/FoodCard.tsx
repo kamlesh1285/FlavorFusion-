@@ -1,20 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { VegIndicator } from "./VegIndicator";
+import VegBadge from "./VegBadge";
+import SpiceMeter from "./SpiceMeter";
 import { resolveImageUrl, type Food } from "@/lib/api";
-
-// Decorative "tin" swatch colors — rotates per category so the grid reads
-// like a shelf of different spice tins rather than one flat palette.
-const SWATCHES = ["#d99a1b", "#b23a2e", "#3f6b4d", "#5b3a5c"];
-
-function swatchFor(seed: string) {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  }
-  return SWATCHES[hash % SWATCHES.length];
-}
 
 export function FoodCard({
   food,
@@ -30,7 +19,6 @@ export function FoodCard({
   );
 
   const outOfStock = !food.isAvailable || food.stockQuantity <= 0;
-  const swatch = swatchFor(food.category?.name ?? food.name);
   const imageSrc = resolveImageUrl(food.imageUrl);
 
   async function handleAdd() {
@@ -46,64 +34,93 @@ export function FoodCard({
   }
 
   return (
-    <div className="ticket-card flex flex-col overflow-hidden">
-      <div
-        className="h-24 flex items-center justify-center relative overflow-hidden"
-        style={{ backgroundColor: swatch }}
-      >
+    <div className="bg-white rounded-2xl border border-amber-900/10 shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col group hover:-translate-y-1">
+      {/* Dish Image Banner */}
+      <div className="h-44 bg-neutral-900 relative overflow-hidden flex items-center justify-center">
         {imageSrc ? (
-          // Served from the backend's own origin, not optimizable by
-          // next/image without extra remote-pattern config for local dev.
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={imageSrc}
             alt={food.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <span className="font-display text-3xl italic font-semibold text-paper/90">
-            {food.name.charAt(0)}
-          </span>
+          <div className="w-full h-full bg-gradient-to-tr from-amber-950 via-neutral-900 to-orange-900 flex items-center justify-center p-4 text-center">
+            <span className="font-serif text-4xl text-amber-400/60 font-bold italic">
+              {food.name.charAt(0)}
+            </span>
+          </div>
         )}
+
+        {/* FSSAI Veg Badge overlay */}
+        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded-md shadow">
+          <VegBadge isVeg={food.isVeg} showText={true} />
+        </div>
+
+        {/* Category Pill */}
+        {food.category?.name && (
+          <div className="absolute top-3 right-3 bg-neutral-950/80 text-amber-300 text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full border border-amber-500/20 backdrop-blur-md">
+            {food.category.name}
+          </div>
+        )}
+
+        {/* Sold out overlay */}
         {outOfStock && (
-          <div className="absolute inset-0 bg-ink/70 flex items-center justify-center">
-            <span className="font-mono text-[0.7rem] tracking-wider text-paper uppercase">
-              Sold out
+          <div className="absolute inset-0 bg-neutral-950/80 backdrop-blur-sm flex items-center justify-center">
+            <span className="px-3 py-1 bg-rose-600 text-white font-mono text-xs tracking-wider rounded-md font-bold uppercase shadow">
+              Sold Out
             </span>
           </div>
         )}
       </div>
 
-      <div className="p-5 flex flex-col flex-1">
-        <div className="flex items-center gap-2 mb-1.5">
-          <VegIndicator isVeg={food.isVeg} />
-          <span className="field-label">{food.category?.name}</span>
+      {/* Dish Details */}
+      <div className="p-4 flex flex-col flex-1 justify-between bg-gradient-to-b from-amber-50/30 to-white">
+        <div>
+          <div className="flex items-center justify-between gap-2 mb-1.5">
+            <h3 className="font-serif text-base font-bold text-neutral-900 group-hover:text-amber-700 transition-colors line-clamp-1">
+              {food.name}
+            </h3>
+          </div>
+
+          <p className="text-neutral-600 text-xs line-clamp-2 leading-relaxed mb-3">
+            {food.description || "Authentic Indian delicacy prepared with traditional spices."}
+          </p>
+
+          <div className="flex items-center justify-between gap-2 text-xs border-t border-amber-900/10 pt-2.5 mb-3">
+            <SpiceMeter dishName={food.name} />
+            {food.preparationTime ? (
+              <span className="text-[11px] text-neutral-500 font-medium flex items-center gap-1">
+                ⏱️ {food.preparationTime} mins
+              </span>
+            ) : null}
+          </div>
         </div>
 
-        <h3 className="font-display text-lg font-semibold text-ink leading-snug">
-          {food.name}
-        </h3>
-
-        {food.description && (
-          <p className="text-ink/55 text-[0.85rem] mt-1 line-clamp-2 flex-1">
-            {food.description}
-          </p>
-        )}
-
-        <div className="flex items-center justify-between mt-4 pt-4 border-t border-ink/10">
-          <span className="font-mono font-semibold text-ink">
-            ₹{Number(food.price).toFixed(0)}
-          </span>
+        {/* Pricing & Add Button */}
+        <div className="flex items-center justify-between pt-2 border-t border-neutral-100">
+          <div>
+            <span className="text-[10px] text-neutral-400 font-mono uppercase tracking-wider block">Price</span>
+            <span className="text-lg font-bold text-amber-800">
+              ₹{Number(food.price).toFixed(0)}
+            </span>
+          </div>
 
           <button
             onClick={handleAdd}
             disabled={disabled || outOfStock || status === "adding"}
-            className="btn-primary !py-2 !px-4 text-sm disabled:!bg-ink/20"
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-1 ${
+              status === "added"
+                ? "bg-emerald-600 text-white"
+                : outOfStock
+                ? "bg-neutral-200 text-neutral-400 cursor-not-allowed shadow-none"
+                : "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white"
+            }`}
           >
-            {status === "adding" && "Adding…"}
+            {status === "adding" && "Adding..."}
             {status === "added" && "Added ✓"}
-            {status === "error" && "Try again"}
-            {status === "idle" && (outOfStock ? "Unavailable" : "Add")}
+            {status === "error" && "Try Again"}
+            {status === "idle" && (outOfStock ? "Unavailable" : "+ Add to Feast")}
           </button>
         </div>
       </div>

@@ -6,15 +6,25 @@ import QRCode from "qrcode";
 export function UpiPayment({ upiLink }: { upiLink: string }) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
+  // Extract VPA from upiLink query params if present
+  let vpa = "7073887930@ptyes";
+  let payee = "FlavorFusion Owner";
+  try {
+    const url = new URL(upiLink);
+    vpa = url.searchParams.get("pa") || vpa;
+    payee = url.searchParams.get("pn") || payee;
+  } catch {
+    // fallback
+  }
+
   useEffect(() => {
     let cancelled = false;
-    QRCode.toDataURL(upiLink, { width: 220, margin: 1 })
+    QRCode.toDataURL(upiLink, { width: 240, margin: 1 })
       .then((url) => {
         if (!cancelled) setQrDataUrl(url);
       })
       .catch(() => {
-        // If QR generation fails for some reason, the raw link below
-        // still works — nothing further to do here.
+        // Fallback
       });
     return () => {
       cancelled = true;
@@ -22,33 +32,39 @@ export function UpiPayment({ upiLink }: { upiLink: string }) {
   }, [upiLink]);
 
   return (
-    <div className="rounded-lg border border-ink/15 bg-paper-dim p-5 text-center">
-      <p className="field-label mb-3">Scan to pay via UPI</p>
+    <div className="rounded-2xl border border-amber-500/30 bg-neutral-900 p-5 text-center text-amber-50 space-y-4 shadow-xl">
+      <div>
+        <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 block">Verified Merchant UPI</span>
+        <h3 className="text-base font-serif font-bold text-amber-100">{payee}</h3>
+        <p className="text-xs font-mono text-emerald-400 font-semibold bg-neutral-950 inline-block px-3 py-1 rounded-full border border-emerald-500/30 mt-1">
+          VPA: {vpa}
+        </p>
+      </div>
 
       {qrDataUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- small local data: URL, not worth next/image here
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={qrDataUrl}
           alt="UPI payment QR code"
-          className="mx-auto rounded-md border border-ink/10 bg-white p-2"
-          width={180}
-          height={180}
+          className="mx-auto rounded-xl border-2 border-amber-400 bg-white p-2.5 shadow-lg"
+          width={190}
+          height={190}
         />
       ) : (
-        <div className="w-[180px] h-[180px] mx-auto rounded-md border border-ink/10 bg-white/50 animate-pulse" />
+        <div className="w-[190px] h-[190px] mx-auto rounded-xl border border-amber-500/30 bg-neutral-950 animate-pulse" />
       )}
 
-      <a
-        href={upiLink}
-        className="btn-primary inline-block mt-4 !py-2 !px-5 text-sm"
-      >
-        Open in UPI app
-      </a>
+      <div>
+        <a
+          href={upiLink}
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-neutral-950 font-bold px-6 py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-md transition-all active:scale-95"
+        >
+          <span>📱</span> Pay via Google Pay / PhonePe / Paytm
+        </a>
+      </div>
 
-      <p className="text-ink/50 text-xs mt-3 max-w-xs mx-auto">
-        Scan with any UPI app (GPay, PhonePe, Paytm) on your phone, or tap
-        the button above if you&apos;re on mobile. Payment status updates
-        once the restaurant confirms it was received.
+      <p className="text-neutral-400 text-[11px] max-w-xs mx-auto leading-relaxed">
+        Scan the QR code with GPay, PhonePe, Paytm, or BHIM app. Once paid into <span className="text-amber-300 font-semibold">{vpa}</span>, staff will confirm your order!
       </p>
     </div>
   );

@@ -1,190 +1,137 @@
 @import "tailwindcss";
 
 :root {
-  /* Brand palette — South Indian banana-leaf thali: turmeric-marigold
-     backdrop, deep banana-leaf green for structure/text, still built
-     on the vintage ticket/spice-tin card system, not a generic theme. */
-  --ink: #1f3d28;         /* deep banana-leaf green — text, navbar, hero */
-  --ink-soft: #2c4f35;    /* lifted panel on top of ink */
-  --paper: #f6e8c9;       /* turmeric-tinted ticket paper (cards) */
-  --paper-dim: #efe0bc;   /* muted paper for inputs/wells */
-  --marigold: #f6c445;    /* turmeric-marigold page background */
-  --turmeric: #d99a1b;    /* primary accent */
-  --turmeric-dark: #a8760f;
-  --chili: #b23a2e;       /* secondary accent / errors / non-veg */
-  --masala: #3f6b4d;      /* success / veg marker */
-
-  --color-background: var(--marigold);
-  --color-foreground: var(--ink);
+  /* Royal Indian Spice Palette */
+  --royal-saffron: #D95D08;
+  --saffron-hover: #BF4F04;
+  --saffron-light: #FFF4EC;
+  --terracotta: #C2593F;
+  --turmeric-gold: #E5A93C;
+  --gold-glow: #FCE8B2;
+  --midnight-indigo: #151922;
+  --indigo-soft: #1E2330;
+  --warm-cream: #FAF6F0;
+  --cream-card: #FFFFFF;
+  --chili-red: #D32F2F;
+  --veg-green: #2E7D32;
+  
+  --color-background: var(--warm-cream);
+  --color-foreground: var(--midnight-indigo);
 }
 
 @theme inline {
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-paper: var(--paper);
-  --color-paper-dim: var(--paper-dim);
-  --color-marigold: var(--marigold);
-  --color-turmeric: var(--turmeric);
-  --color-turmeric-dark: var(--turmeric-dark);
-  --color-chili: var(--chili);
-  --color-masala: var(--masala);
-
-  --font-display: var(--font-display);
-  --font-body: var(--font-body);
-  --font-mono: var(--font-mono);
+  --color-saffron: var(--royal-saffron);
+  --color-terracotta: var(--terracotta);
+  --color-gold: var(--turmeric-gold);
+  --color-indigo: var(--midnight-indigo);
+  --color-cream: var(--warm-cream);
+  --color-chili: var(--chili-red);
+  --color-veg: var(--veg-green);
 }
 
 body {
-  background-color: var(--marigold);
-  color: var(--ink);
-  font-family: var(--font-body), Arial, Helvetica, sans-serif;
-  background-image:
-    url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGcgc3Ryb2tlPSIjMUYzRDI4IiBzdHJva2Utd2lkdGg9IjEuNiIgZmlsbD0ibm9uZSIgb3BhY2l0eT0iMC4wOSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIj4KICAgIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDMwLDEwKSByb3RhdGUoOCkiPgogICAgICA8cGF0aCBkPSJNNDAgMCBDMTAgMjAsIDQgNzAsIDQwIDExNSBDNzYgNzAsIDcwIDIwLCA0MCAwIFoiLz4KICAgICAgPHBhdGggZD0iTTQwIDYgTDQwIDEwOCIvPgogICAgICA8cGF0aCBkPSJNNDAgMjYgTDIwIDM4IE00MCAyNiBMNjAgMzgiLz4KICAgICAgPHBhdGggZD0iTTQwIDQ4IEwxNiA2MiBNNDAgNDggTDY0IDYyIi8+CiAgICAgIDxwYXRoIGQ9Ik00MCA3MCBMMTggODIgTTQwIDcwIEw2MiA4MiIvPgogICAgICA8cGF0aCBkPSJNNDAgOTAgTDI0IDEwMCBNNDAgOTAgTDU2IDEwMCIvPgogICAgPC9nPgogICAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTIwLDk1KSByb3RhdGUoLTE4KSBzY2FsZSgwLjgpIj4KICAgICAgPHBhdGggZD0iTTQwIDAgQzEwIDIwLCA0IDcwLCA0MCAxMTUgQzc2IDcwLCA3MCAyMCwgNDAgMCBaIi8+CiAgICAgIDxwYXRoIGQ9Ik00MCA2IEw0MCAxMDgiLz4KICAgICAgPHBhdGggZD0iTTQwIDI2IEwyMCAzOCBNNDAgMjYgTDYwIDM4Ii8+CiAgICAgIDxwYXRoIGQ9Ik00MCA0OCBMMTYgNjIgTTQwIDQ4IEw2NCA2MiIvPgogICAgICA8cGF0aCBkPSJNNDAgNzAgTDE4IDgyIE00MCA3MCBMNjIgODIiLz4KICAgICAgPHBhdGggZD0iTTQwIDkwIEwyNCAxMDAgTTQwIDkwIEw1NiAxMDAiLz4KICAgIDwvZz4KICA8L2c+Cjwvc3ZnPg==");
-  background-repeat: repeat;
-  background-size: 200px 200px;
+  background-color: var(--warm-cream);
+  color: var(--midnight-indigo);
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
+  background-image: radial-gradient(rgba(217, 93, 8, 0.05) 1px, transparent 0);
+  background-size: 24px 24px;
 }
 
-/* ---- Ticket / stamp signature system ---- */
-
-.ticket-card {
-  background: var(--paper);
-  color: var(--ink);
-  border-radius: 18px;
-  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.55);
-  overflow: hidden;
-}
-
-/* Perforated tear-line between the ticket stub and the form body */
-.ticket-perforation {
-  position: relative;
-  height: 0;
-  border-top: 2px dashed rgba(31, 61, 40, 0.25);
-}
-
-.ticket-perforation::before,
-.ticket-perforation::after {
-  content: "";
-  position: absolute;
-  top: -11px;
-  width: 22px;
-  height: 22px;
-  border-radius: 9999px;
-  background: var(--ink);
-}
-
-.ticket-perforation::before {
-  left: -11px;
-}
-
-.ticket-perforation::after {
-  right: -11px;
-}
-
-/* Rotating circular stamp badge */
-.stamp {
-  position: relative;
-  width: 84px;
-  height: 84px;
-  border-radius: 9999px;
-  border: 1.5px solid rgba(246, 232, 201, 0.55);
-  display: flex;
+/* FSSAI Badges */
+.fssai-box {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 4px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
-.stamp::before {
-  content: "";
-  position: absolute;
-  inset: 6px;
+.fssai-veg {
+  border-color: #2E7D32;
+}
+
+.fssai-veg-dot {
+  width: 8px;
+  height: 8px;
   border-radius: 9999px;
-  border: 1px dashed rgba(246, 232, 201, 0.35);
+  background-color: #2E7D32;
 }
 
-.stamp-spin {
-  animation: stamp-spin 22s linear infinite;
+.fssai-nonveg {
+  border-color: #D32F2F;
 }
 
-@keyframes stamp-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.fssai-nonveg-dot {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 9px solid #D32F2F;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .stamp-spin {
-    animation: none;
-  }
+/* Glassmorphism & Custom Cards */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(217, 93, 8, 0.12);
 }
 
-/* ---- Form primitives ---- */
-
-.field-label {
-  font-family: var(--font-mono), monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: rgba(31, 61, 40, 0.6);
+.glass-dark {
+  background: rgba(21, 25, 34, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(229, 169, 60, 0.2);
 }
 
-.field-input {
-  width: 100%;
-  background: var(--paper-dim);
-  border: 1.5px solid rgba(31, 61, 40, 0.15);
-  border-radius: 10px;
-  padding: 0.65rem 0.85rem;
-  font-size: 0.95rem;
-  color: var(--ink);
-  transition: border-color 0.15s ease, background 0.15s ease;
+.royal-gradient {
+  background: linear-gradient(135deg, #151922 0%, #291206 50%, #D95D08 100%);
 }
 
-.field-input::placeholder {
-  color: rgba(31, 61, 40, 0.35);
+.saffron-gradient {
+  background: linear-gradient(135deg, #D95D08 0%, #E5A93C 100%);
 }
 
-.field-input:focus {
-  outline: none;
-  border-color: var(--chili);
-  background: var(--paper);
+.gold-text-glow {
+  color: #E5A93C;
+  text-shadow: 0 0 20px rgba(229, 169, 60, 0.35);
 }
 
-.field-input:focus-visible {
-  outline: 2px solid var(--chili);
-  outline-offset: 1px;
+/* Rotating Mandala / Spice Animation */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-.btn-primary {
-  background: var(--chili);
-  color: var(--paper);
-  font-weight: 600;
-  border-radius: 10px;
-  padding: 0.7rem 1.25rem;
-  transition: transform 0.12s ease, background 0.15s ease;
+.animate-spin-slow {
+  animation: spin-slow 35s linear infinite;
 }
 
-.btn-primary:hover:not(:disabled) {
-  background: #9a3125;
+@keyframes float-spice {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(5deg); }
 }
 
-.btn-primary:active:not(:disabled) {
-  transform: scale(0.98);
+.animate-float {
+  animation: float-spice 4s ease-in-out infinite;
 }
 
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.03);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(217, 93, 8, 0.3);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(217, 93, 8, 0.6);
 }
 
-.btn-primary:focus-visible {
-  outline: 2px solid var(--turmeric);
-  outline-offset: 2px;
-}
-
-.error-text {
-  font-family: var(--font-mono), monospace;
-  font-size: 0.78rem;
-  color: var(--chili);
-}
