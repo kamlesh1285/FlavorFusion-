@@ -1,0 +1,45 @@
+services:
+  # 1. NestJS Backend API Service
+  - type: web
+    name: flavorfusion-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DATABASE_HOST
+        fromDatabase:
+          name: flavorfusion-db
+          property: host
+      - key: DATABASE_PORT
+        fromDatabase:
+          name: flavorfusion-db
+          property: port
+      - key: DATABASE_USERNAME
+        fromDatabase:
+          name: flavorfusion-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: flavorfusion-db
+          property: password
+      - key: DATABASE_NAME
+        fromDatabase:
+          name: flavorfusion-db
+          property: database
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: UPI_ID
+        value: 7073887930@ptyes
+      - key: UPI_PAYEE_NAME
+        value: FlavorFusion Owner
+
+databases:
+  # Managed PostgreSQL Database
+  - name: flavorfusion-db
+    databaseName: flavorfusion
+    user: flavorfusion_user
