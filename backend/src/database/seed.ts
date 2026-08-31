@@ -9,13 +9,22 @@ import { Food } from '../foods/entities/food.entity';
 
 config();
 
+const databaseUrl = process.env.DATABASE_URL;
+
+const connectionOptions = databaseUrl
+  ? { url: databaseUrl }
+  : {
+      host: process.env.DATABASE_HOST,
+      port: Number(process.env.DATABASE_PORT),
+      username: process.env.DATABASE_USERNAME,
+      password: process.env.DATABASE_PASSWORD,
+      database: process.env.DATABASE_NAME,
+    };
+
 const dataSource = new DataSource({
   type: 'postgres',
-  host: process.env.DATABASE_HOST,
-  port: Number(process.env.DATABASE_PORT),
-  username: process.env.DATABASE_USERNAME,
-  password: process.env.DATABASE_PASSWORD,
-  database: process.env.DATABASE_NAME,
+  ...connectionOptions,
+  ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
   entities: [User, Category, Food],
   synchronize: true,
 });
