@@ -19,23 +19,36 @@ import { UploadsModule } from './uploads/uploads.module';
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
 
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
+      useFactory: (configService: ConfigService) => {
+        const databaseUrl = configService.get<string>('DATABASE_URL');
 
-        host: configService.get<string>('DATABASE_HOST'),
+        // Hosted platforms (Render, Railway, Heroku-style) typically
+        // provide one connection string. Local dev uses the five
+        // separate DATABASE_* fields instead - support both so the
+        // same code works in either environment.
+        const base = databaseUrl
+          ? { url: databaseUrl }
+          : {
+              host: configService.get<string>('DATABASE_HOST'),
+              port: Number(configService.get<number>('DATABASE_PORT')),
+              username: configService.get<string>('DATABASE_USERNAME'),
+              password: configService.get<string>('DATABASE_PASSWORD'),
+              database: configService.get<string>('DATABASE_NAME'),
+            };
 
-        port: Number(configService.get<number>('DATABASE_PORT')),
-
-        username: configService.get<string>('DATABASE_USERNAME'),
-
-        password: configService.get<string>('DATABASE_PASSWORD'),
-
-        database: configService.get<string>('DATABASE_NAME'),
-
-        autoLoadEntities: true,
-
-        synchronize: true,
-      }),
+        return {
+          type: 'postgres' as const,
+          ...base,
+          autoLoadEntities: true,
+          synchronize: true,
+          // Hosted Postgres requires SSL for external connections;
+          // local dev doesn't have/need it.
+          ssl:
+            configService.get<string>('DATABASE_SSL') === 'true'
+              ? { rejectUnauthorized: false }
+              : false,
+        };
+      },
     }),
 
     UsersModule,

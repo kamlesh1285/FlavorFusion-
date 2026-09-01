@@ -61,15 +61,22 @@ export class PaymentsService {
     }
 
     if (request.method === PaymentMethod.UPI) {
-      const payeeVpa = this.configService.get<string>('UPI_ID', '7073887930@ptyes');
+      const payeeVpa = this.configService.get<string>('UPI_ID');
       const payeeName = this.configService.get<string>(
         'UPI_PAYEE_NAME',
-        'FlavorFusion Owner',
+        'FlavorFusion',
       );
 
+      if (!payeeVpa) {
+        this.logger.warn(
+          'UPI_ID is not configured — generating a placeholder link. ' +
+            'Set UPI_ID in .env to your real UPI ID before accepting real payments.',
+        );
+      }
+
       const upiLink = buildUpiLink({
-        payeeVpa: payeeVpa || '7073887930@ptyes',
-        payeeName: payeeName || 'FlavorFusion Owner',
+        payeeVpa: payeeVpa || 'set-upi-id-in-env@upi',
+        payeeName,
         amount: request.amount,
         transactionRef,
         note: `FlavorFusion order ${request.orderId.slice(0, 8)}`,
